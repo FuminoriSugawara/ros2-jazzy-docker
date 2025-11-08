@@ -3,9 +3,12 @@ ARG BASE_IMAGE=ros2-jazzy-dev:latest
 FROM ${BASE_IMAGE}
 
 ARG LIBREALSENSE_VERSION=v2.55.1
+ENV UV_INSTALL_DIR=/opt/uv
+ENV PATH="${UV_INSTALL_DIR}:${UV_INSTALL_DIR}/bin:${PATH}"
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+      curl \
       cmake \
       libusb-1.0-0-dev \
       libudev-dev \
@@ -27,6 +30,11 @@ RUN apt-get update && \
       ros-${ROS_DISTRO}-realsense2-description \
       ros-${ROS_DISTRO}-image-tools && \
     rm -rf /var/lib/apt/lists/*
+
+# Install uv so downstream images can manage Python deps consistently.
+RUN mkdir -p "${UV_INSTALL_DIR}" && \
+    curl -LsSf https://astral.sh/uv/install.sh | \
+      UV_INSTALL_DIR="${UV_INSTALL_DIR}" sh
 
 # Build librealsense from source to enable RSUSB backend (works with PREEMPT_RT kernels).
 RUN git clone --branch "${LIBREALSENSE_VERSION}" --depth 1 https://github.com/IntelRealSense/librealsense.git /tmp/librealsense && \

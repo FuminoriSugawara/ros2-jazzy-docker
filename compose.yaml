@@ -40,3 +40,17 @@ services:
     privileged: true
     depends_on:
       - dev
+
+  realsense-yolo:
+    <<: *ros-common
+    image: ros2-jazzy-realsense-yolo
+    build:
+      context: .
+      dockerfile: Dockerfile.realsense-yolo
+      args:
+        BASE_IMAGE: ros2-jazzy-realsense
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    privileged: true
+    depends_on:
+      - realsense
