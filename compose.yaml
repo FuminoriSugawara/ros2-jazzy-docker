@@ -69,3 +69,17 @@ services:
       - ./zenoh-config:/etc/zenoh
     depends_on:
       - dev
+      - zenohd
+
+  zenohd:
+    image: zenohd-cloud
+    build:
+      context: .
+      dockerfile: Dockerfile.zenohd
+    ports:
+      - "7447:7447/tcp"
+      - "7446:7446/udp"
+    volumes:
+      - ./zenoh-config:/etc/zenoh
+      - zenoh-data:/var/lib/zenoh
+    restart: unless-stopped
