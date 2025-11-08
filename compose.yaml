@@ -83,3 +83,6 @@ services:
       - ./zenoh-config:/etc/zenoh
       - zenoh-data:/var/lib/zenoh
     restart: unless-stopped
+
+volumes:
+  zenoh-data:
