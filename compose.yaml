@@ -66,13 +66,13 @@ services:
     environment:
       - ZENOH_CONFIG=/etc/zenoh/bridge.json
     volumes:
-      - ./zenoh-config:/etc/zenoh
+      - ./zenoh-bridge-config:/etc/zenoh
     depends_on:
       - dev
       - zenohd
 
   zenohd:
-    image: zenohd-cloud
+    image: zenohd
     build:
       context: .
       dockerfile: Dockerfile.zenohd
@@ -80,7 +80,7 @@ services:
       - "7447:7447/tcp"
       - "7446:7446/udp"
     volumes:
-      - ./zenoh-config:/etc/zenoh
+      - ./zenohd-config:/etc/zenoh
       - zenoh-data:/var/lib/zenoh
     restart: unless-stopped
 
