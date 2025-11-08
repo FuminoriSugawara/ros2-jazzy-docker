@@ -1,0 +1,35 @@
+# ROS 2 Jazzy environment with Zenoh DDS bridge binaries pre-installed.
+ARG BASE_IMAGE=ros2-jazzy-dev:latest
+FROM ${BASE_IMAGE}
+
+ARG ZENOH_VERSION=1.0.0
+ARG ZENOH_TARGET_ARCH=x86_64-unknown-linux-gnu-standalone
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    ZENOH_INSTALL_DIR=/opt/zenoh \
+    ZENOH_BRIDGE_DDS_BIN=/usr/local/bin/zenoh-bridge-dds \
+    LD_LIBRARY_PATH=/opt/zenoh
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      ca-certificates \
+      curl \
+      jq \
+      libssl3 \
+      unzip && \
+    rm -rf /var/lib/apt/lists/*
+
+# Download the zenoh-bridge-dds standalone package and install binaries.
+RUN mkdir -p "${ZENOH_INSTALL_DIR}" /tmp/zenoh-plugin && \
+    curl -fSL "https://github.com/eclipse-zenoh/zenoh-plugin-dds/releases/download/${ZENOH_VERSION}/zenoh-plugin-dds-${ZENOH_VERSION}-${ZENOH_TARGET_ARCH}.zip" -o /tmp/zenoh-plugin.zip && \
+    unzip /tmp/zenoh-plugin.zip -d /tmp/zenoh-plugin && \
+    install -m 0755 /tmp/zenoh-plugin/zenoh-bridge-dds "${ZENOH_BRIDGE_DDS_BIN}" && \
+    install -m 0644 /tmp/zenoh-plugin/libzenoh_plugin_dds.so "${ZENOH_INSTALL_DIR}/" && \
+    rm -rf /tmp/zenoh-plugin /tmp/zenoh-plugin.zip
+
+# Provide default configuration directory for mounting custom bridge configs.
+RUN mkdir -p /etc/zenoh && \
+    printf '# Place custom zenoh bridge configs here, e.g. /etc/zenoh/bridge.json\n' > /etc/zenoh/README
+
+# Default command prints usage instructions.
+CMD ["bash", "-lc", "zenoh-bridge-dds --help && echo 'Launch with: zenoh-bridge-dds --config /etc/zenoh/bridge.json'"]

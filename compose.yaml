@@ -54,3 +54,18 @@ services:
     privileged: true
     depends_on:
       - realsense
+
+  zenoh-bridge:
+    <<: *ros-common
+    image: ros2-jazzy-zenoh-bridge
+    build:
+      context: .
+      dockerfile: Dockerfile.zenoh-bridge
+      args:
+        BASE_IMAGE: ros2-jazzy-dev
+    environment:
+      - ZENOH_CONFIG=/etc/zenoh/bridge.json
+    volumes:
+      - ./zenoh-config:/etc/zenoh
+    depends_on:
+      - dev

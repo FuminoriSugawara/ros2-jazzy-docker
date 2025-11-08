@@ -1,0 +1,43 @@
+# Cloud-ready zenohd router image for exposing Zenoh over the internet.
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    ZENOH_CONFIG=/etc/zenoh/zenohd.json
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      ca-certificates \
+      curl \
+      gnupg \
+      lsb-release \
+      unzip \
+      tzdata && \
+    rm -rf /var/lib/apt/lists/*
+
+# Configure Eclipse Zenoh APT repository and install zenoh/zenohd.
+RUN set -eux; \
+    install -d /etc/apt/keyrings && \
+    curl -fsSL https://download.eclipse.org/zenoh/debian-repo/zenoh-public-key | \
+      gpg --dearmor --yes --output /etc/apt/keyrings/zenoh-public-key.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/zenoh-public-key.gpg] https://download.eclipse.org/zenoh/debian-repo/ /" \
+      > /etc/apt/sources.list.d/zenoh.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends zenoh && \
+    rm -rf /var/lib/apt/lists/*
+
+# Provide default config directory, data dir, and non-root runtime user.
+RUN set -eux; \
+    mkdir -p /etc/zenoh/ssl /var/lib/zenoh && \
+    printf '{\n  "listen": ["tcp/0.0.0.0:7447"],\n  "scouting": {"multicast": {"enabled": false}},\n  "adminspace": {"permissions": {"read": true, "write": false}}\n}\n' > "${ZENOH_CONFIG}" && \
+    groupadd -r zenoh && useradd -r -g zenoh -d /var/lib/zenoh -s /usr/sbin/nologin zenoh && \
+    chown -R zenoh:zenoh /etc/zenoh /var/lib/zenoh
+
+EXPOSE 7447/tcp
+EXPOSE 7446/udp
+VOLUME ["/etc/zenoh", "/var/lib/zenoh"]
+
+USER zenoh
+WORKDIR /var/lib/zenoh
+
+ENTRYPOINT ["zenohd", "--config"]
+CMD ["/etc/zenoh/zenohd.json"]
