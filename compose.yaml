@@ -1,0 +1,42 @@
+x-ros-common: &ros-common
+  stdin_open: true
+  tty: true
+  command: bash
+  environment:
+    - ROS_DISTRO=jazzy
+  volumes:
+    - .:/workspaces/ros2
+  working_dir: /workspaces/ros2
+
+services:
+  dev:
+    <<: *ros-common
+    image: ros2-jazzy-dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+  rosbag2:
+    <<: *ros-common
+    image: ros2-jazzy-rosbag2
+    build:
+      context: .
+      dockerfile: Dockerfile.rosbag2
+      args:
+        BASE_IMAGE: ros2-jazzy-dev
+    depends_on:
+      - dev
+
+  realsense:
+    <<: *ros-common
+    image: ros2-jazzy-realsense
+    build:
+      context: .
+      dockerfile: Dockerfile.realsense
+      args:
+        BASE_IMAGE: ros2-jazzy-dev
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    privileged: true
+    depends_on:
+      - dev

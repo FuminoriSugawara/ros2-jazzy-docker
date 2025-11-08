@@ -1,0 +1,16 @@
+# Additional ROS 2 Jazzy tooling with rosbag2 utilities preinstalled.
+ARG BASE_IMAGE=ros2-jazzy-dev:latest
+FROM ${BASE_IMAGE}
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      ros-${ROS_DISTRO}-rosbag2 \
+      ros-${ROS_DISTRO}-rosbag2-cli \
+      ros-${ROS_DISTRO}-rosbag2-storage-default-plugins \
+      ros-${ROS_DISTRO}-rosbag2-storage-mcap \
+      ros-${ROS_DISTRO}-rosbag2-transport \
+      ros-${ROS_DISTRO}-ros2bag \
+      python3-rosbag2-py \
+      sqlite3 \
+      python3-yaml && \
+    rm -rf /var/lib/apt/lists/*
