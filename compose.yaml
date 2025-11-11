@@ -65,6 +65,10 @@ services:
         BASE_IMAGE: ros2-jazzy-dev
     environment:
       - ZENOH_CONFIG=/etc/zenoh/bridge.json
+    command:
+      - zenoh-bridge-dds
+      - --config
+      - /etc/zenoh/bridge.json
     volumes:
       - ./zenoh-bridge-config:/etc/zenoh
     depends_on:

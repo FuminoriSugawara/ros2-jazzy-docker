@@ -1,0 +1,9 @@
+{
+  "mode": "client",
+  "connect": {
+    "endpoints": ["tcp/20.18.255.143:7447"]
+  },
+  "plugins": {
+    "dds": {}
+  }
+}
