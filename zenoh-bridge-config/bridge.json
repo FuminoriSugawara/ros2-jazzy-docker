@@ -1,7 +1,7 @@
 {
   "mode": "client",
   "connect": {
-    "endpoints": ["tcp/52.156.48.178:7447"]
+    "endpoints": ["${ZENOH_CONNECT}"]
   },
   "plugins": {
     "dds": {}

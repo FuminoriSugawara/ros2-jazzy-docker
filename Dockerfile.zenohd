@@ -12,7 +12,6 @@ RUN apt-get update && \
       curl \
       gnupg \
       lsb-release \
-      tcpdump \
       python3-pip \
       unzip \
       tzdata && \
@@ -36,78 +35,6 @@ RUN set -eux; \
     printf '{\n  "listen": {\n    "endpoints": ["tcp/0.0.0.0:7447"]\n  },\n  "scouting": {\n "multicast": { "enabled": false }\n  },\n  "adminspace": {\n    "permissions": { "read": true, "write": false }\n  }\n}\n' > "${ZENOH_CONFIG}" && \ 
     groupadd -r zenoh && useradd -r -g zenoh -d /var/lib/zenoh -s /usr/sbin/nologin zenoh && \
     chown -R zenoh:zenoh /etc/zenoh /var/lib/zenoh
-
-# Provide a lightweight zenoh-cli helper (subscribe/publish) for debugging.
-RUN set -eux; \
-    cat <<'EOF' >/usr/local/bin/zenoh-cli && \
-    chmod +x /usr/local/bin/zenoh-cli
-#!/usr/bin/env python3
-import argparse
-import signal
-import sys
-import threading
-import zenoh
-
-def open_session():
-    return zenoh.open(zenoh.Config())
-
-def cmd_sub(args):
-    session = open_session()
-    stop_event = threading.Event()
-
-    def _shutdown(signum, frame):
-        stop_event.set()
-
-    signal.signal(signal.SIGINT, _shutdown)
-    signal.signal(signal.SIGTERM, _shutdown)
-
-    def _callback(sample):
-        payload = bytes(sample.payload)
-        text = payload.decode("utf-8", errors="replace")
-        print(f"[zenoh] {sample.key_expr}: {text}")
-        sys.stdout.flush()
-
-    subscriber = session.declare_subscriber(args.keyexpr, _callback)
-    print(f"Subscribed to '{args.keyexpr}'. Press Ctrl+C to stop.")
-
-    if args.timeout:
-        stop_event.wait(args.timeout)
-    else:
-        stop_event.wait()
-
-    subscriber.undeclare()
-    session.close()
-
-def cmd_pub(args):
-    session = open_session()
-    payload = args.payload.encode("utf-8")
-    session.put(args.keyexpr, payload, encoding=args.encoding)
-    session.close()
-
-def main():
-    parser = argparse.ArgumentParser(description="Minimal zenoh CLI helper.")
-    subparsers = parser.add_subparsers(dest="command", required=True)
-
-    sub_parser = subparsers.add_parser("sub", help="Subscribe to a key expression")
-    sub_parser.add_argument("keyexpr", help="Key expression to subscribe to, e.g. 'rt/**'")
-    sub_parser.add_argument("--timeout", type=float, help="Stop after N seconds (default: wait forever)")
-    sub_parser.set_defaults(func=cmd_sub)
-
-    pub_parser = subparsers.add_parser("pub", help="Publish a value once")
-    pub_parser.add_argument("keyexpr", help="Key expression to publish to")
-    pub_parser.add_argument("payload", help="Payload string to send")
-    pub_parser.add_argument("--encoding", default="text/plain", help="Zenoh encoding (default: text/plain)")
-    pub_parser.set_defaults(func=cmd_pub)
-
-    args = parser.parse_args()
-    try:
-        args.func(args)
-    except KeyboardInterrupt:
-        pass
-
-if __name__ == "__main__":
-    main()
-EOF
 
 EXPOSE 7447/tcp
 EXPOSE 7446/udp

@@ -24,8 +24,6 @@ services:
       dockerfile: Dockerfile.rosbag2
       args:
         BASE_IMAGE: ros2-jazzy-dev
-    depends_on:
-      - dev
 
   realsense:
     <<: *ros-common
@@ -38,8 +36,6 @@ services:
     devices:
       - /dev/bus/usb:/dev/bus/usb
     privileged: true
-    depends_on:
-      - dev
 
   realsense-yolo:
     <<: *ros-common
@@ -52,8 +48,6 @@ services:
     devices:
       - /dev/bus/usb:/dev/bus/usb
     privileged: true
-    depends_on:
-      - realsense
 
   zenoh-bridge:
     <<: *ros-common
@@ -65,15 +59,16 @@ services:
         BASE_IMAGE: ros2-jazzy-dev
     environment:
       - ZENOH_CONFIG=/etc/zenoh/bridge.json
+      - ZENOH_CONNECT=${ZENOH_CONNECT:-}
     command:
-      - zenoh-bridge-dds
-      - --config
-      - /etc/zenoh/bridge.json
+      - bash
+      - -lc
+      - |
+        : "$${ZENOH_CONNECT:?Set ZENOH_CONNECT in .env (e.g., tcp/host:7447)}"
+        envsubst < /etc/zenoh/bridge.json > /tmp/bridge.rendered.json
+        exec zenoh-bridge-dds --config /tmp/bridge.rendered.json
     volumes:
       - ./zenoh-bridge-config:/etc/zenoh
-    depends_on:
-      - dev
-      - zenohd
 
   zenohd:
     image: zenohd
