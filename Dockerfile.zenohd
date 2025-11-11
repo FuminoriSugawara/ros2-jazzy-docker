@@ -28,7 +28,7 @@ RUN set -eux; \
 # Provide default config directory, data dir, and non-root runtime user.
 RUN set -eux; \
     mkdir -p /etc/zenoh/ssl /var/lib/zenoh && \
-    printf '{\n  "listen": ["tcp/0.0.0.0:7447"],\n  "scouting": {"multicast": {"enabled": false}},\n  "adminspace": {"permissions": {"read": true, "write": false}}\n}\n' > "${ZENOH_CONFIG}" && \
+    printf '{\n  "listen": {\n    "endpoints": ["tcp/0.0.0.0:7447"]\n  },\n  "scouting": {\n "multicast": { "enabled": false }\n  },\n  "adminspace": {\n    "permissions": { "read": true, "write": false }\n  }\n}\n' > "${ZENOH_CONFIG}" && \ 
     groupadd -r zenoh && useradd -r -g zenoh -d /var/lib/zenoh -s /usr/sbin/nologin zenoh && \
     chown -R zenoh:zenoh /etc/zenoh /var/lib/zenoh
 
