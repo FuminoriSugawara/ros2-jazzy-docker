@@ -2,6 +2,7 @@
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_BREAK_SYSTEM_PACKAGES=1 \
     ROS_DISTRO=jazzy
 
 # Use bash for RUN commands so we can source setup files easily later.
@@ -37,6 +38,9 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       ros-${ROS_DISTRO}-desktop \
       ros-dev-tools \
+      python3 \
+      python3-venv \
+      python3-pip \
       build-essential \
       git \
       python3-colcon-common-extensions && \

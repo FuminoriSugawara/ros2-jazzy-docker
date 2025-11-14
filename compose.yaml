@@ -25,30 +25,6 @@ services:
       args:
         BASE_IMAGE: ros2-jazzy-dev
 
-  realsense:
-    <<: *ros-common
-    image: ros2-jazzy-realsense
-    build:
-      context: .
-      dockerfile: Dockerfile.realsense
-      args:
-        BASE_IMAGE: ros2-jazzy-dev
-    devices:
-      - /dev/bus/usb:/dev/bus/usb
-    privileged: true
-
-  realsense-yolo:
-    <<: *ros-common
-    image: ros2-jazzy-realsense-yolo
-    build:
-      context: .
-      dockerfile: Dockerfile.realsense-yolo
-      args:
-        BASE_IMAGE: ros2-jazzy-realsense
-    devices:
-      - /dev/bus/usb:/dev/bus/usb
-    privileged: true
-
   zenoh-bridge:
     <<: *ros-common
     image: ros2-jazzy-zenoh-bridge
